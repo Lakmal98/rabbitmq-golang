@@ -1,0 +1,47 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.0.2-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672" # RabbitMQ Management UI
+      - "5672:5672"   # RabbitMQ default port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: rabbit
+      RABBITMQ_DEFAULT_VHOST: rabbit
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_net
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: ["redis-server", "--requirepass", "redis"] # Redis password
+    ports:
+      - "6379:6379"  # Redis default port
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_net
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - 80:5540 # RedisInsight UI port
+    depends_on:
+      - redis
+    environment:
+      REDISINSIGHT_SECURITY_USER: redis       # RedisInsight default user
+      REDISINSIGHT_SECURITY_PASSWORD: redis    # RedisInsight default password
+    networks:
+      - app_net
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  app_net:
+    driver: bridge
